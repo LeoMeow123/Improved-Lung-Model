@@ -1,0 +1,89 @@
+---
+title: "BENG227_Project_Stat"
+format: html
+editor: visual
+author: Yipeng Li
+---
+
+```{r}
+# Load necessary packages
+#install.packages("R.matlab")
+library(R.matlab)
+```
+
+```{r}
+library(ggplot2)
+# Define file paths
+file1 <- "PCV_PA_NoCO2Binding.mat"
+file2 <- "PCV_PA_WithCO2Binding.mat"
+
+# Read the data
+data1 <- readMat(file1)
+data2 <- readMat(file2)
+
+# Extract the relevant columns (replace 'your_variable_name' with the actual variable names)
+col1_data1 <- data1$PCV.PA.CO2.NoCO2Binding
+col1_data2 <- data2$PCV.PA.CO2.withCO2Binding
+
+col2_data1 <- data1$PCV.PA.O2.NoCO2Binding
+col2_data2 <- data2$PCV.PA.O2.withCO2Binding
+
+# Summary statistics
+summary(col1_data1)
+summary(col1_data2)
+summary(col2_data1)
+summary(col2_data2)
+
+# Visualize the data
+df1 <- data.frame(value = c(col1_data1, col1_data2), 
+                  group = rep(c("No CO2 Binding", "With CO2 Binding"), each = length(col1_data1)))
+df2 <- data.frame(value = c(col2_data1, col2_data2), 
+                  group = rep(c("No CO2 Binding", "With CO2 Binding"), each = length(col2_data1)))
+
+ggplot(df1, aes(x = group, y = value)) + 
+  geom_boxplot() + 
+  ggtitle("Column 1 Comparison")
+
+ggplot(df2, aes(x = group, y = value)) + 
+  geom_boxplot() + 
+  ggtitle("Column 2 Comparison")
+
+# Perform t-test on col1
+t_test_col1 <- t.test(col1_data1, col1_data2, paired = TRUE)
+p_value_col1 <- t_test_col1$p.value
+
+# Perform t-test on col2
+t_test_col2 <- t.test(col2_data1, col2_data2, paired = TRUE)
+p_value_col2 <- t_test_col2$p.value
+
+# Print the p-values
+print(paste("P-value for col1 comparison:", p_value_col1))
+print(paste("P-value for col2 comparison:", p_value_col2))
+```
+
+```{r}
+library(perm)
+permutation_test <- function(data1, data2, num_permutations = 10000) {
+  observed_diff <- mean(data1) - mean(data2)
+  combined <- c(data1, data2)
+  n <- length(data1)
+  perm_diffs <- numeric(num_permutations)
+
+  for (i in 1:num_permutations) {
+    permuted <- sample(combined)
+    perm_diffs[i] <- mean(permuted[1:n]) - mean(permuted[(n+1):(2*n)])
+  }
+
+  p_value <- mean(abs(perm_diffs) >= abs(observed_diff))
+  return(p_value)
+}
+
+# Perform permutation tests
+p_value_col1 <- permutation_test(col1_data1, col1_data2)
+p_value_col2 <- permutation_test(col2_data1, col2_data2)
+
+# Print the p-values
+print(paste("Permutation test p-value for col1 comparison:", p_value_col1))
+print(paste("Permutation test p-value for col2 comparison:", p_value_col2))
+
+```

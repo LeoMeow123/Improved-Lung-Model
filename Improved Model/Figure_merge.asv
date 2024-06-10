@@ -1,0 +1,76 @@
+% Load figures
+fig1 = openfig('figure1b.fig', 'invisible');
+ax1 = findall(fig1, 'type', 'axes');
+fig2 = openfig('figure2b.fig', 'invisible');
+ax2 = findall(fig2, 'type', 'axes');
+
+% merged figure
+figure;
+n = length(ax1);
+
+% colors
+color_figure1_solid = [0 0 0.5]; % Dark blue for PCV from figure 1
+color_figure1_dash = [0.5 0.5 1]; % Light blue for VCV from figure 1
+color_figure2_solid = [1 0 0]; % Red for PCV from figure 2
+color_figure2_dash = [1 0.75 0.8]; % Pink for VCV from figure 2
+
+% Loop through each subplot and merge the contents
+for i = 1:n
+    % Create a subplot in the new figure
+    subplot(2, 2, i);
+    
+    % Copy the contents of the subplot from the first figure
+    fig1_children = get(ax1(n - i + 1), 'Children'); % Correct the subplot order
+    for j = 1:length(fig1_children)
+        new_obj = copyobj(fig1_children(j), gca);
+        if strcmp(new_obj.Type, 'line')
+            % Set the properties based on the line style
+            if strcmp(new_obj.LineStyle, '--') % Dashed line for VCV
+                new_obj.Color = color_figure1_dash; % Light blue for VCV from the first figure
+            else % Solid line for PCV
+                new_obj.Color = color_figure1_solid; % Dark blue for PCV from the first figure
+            end
+        end
+    end
+    
+    % Copy the contents of the subplot from the second figure
+    fig2_children = get(ax2(n - i + 1), 'Children'); % Correct the subplot order
+    for j = 1:length(fig2_children)
+        new_obj = copyobj(fig2_children(j), gca);
+        if strcmp(new_obj.Type, 'line')
+            % Set the properties based on the line style
+            if strcmp(new_obj.LineStyle, '--') % Dashed line for VCV
+                new_obj.Color = color_figure2_dash; % Pink for VCV from the second figure
+            else % Solid line for PCV
+                new_obj.Color = color_figure2_solid; % Red for PCV from the second figure
+            end
+        end
+    end
+    
+    % Copy the title, labels, and other properties
+    title(get(get(ax1(n - i + 1), 'Title'), 'String'));
+    xlabel(get(get(ax1(n - i + 1), 'XLabel'), 'String'));
+    ylabel(get(get(ax1(n - i + 1), 'YLabel'), 'String'));
+    grid on;
+    xlim([168 172]);
+    xticks(168:172);
+    xticklabels({'0', '1', '2', '3', '4'});
+    
+    % Set specific y-limits based on subplot index if required
+    if i == 2
+        ylim([34 50]);
+    elseif i == 3
+        ylim([126 134]);
+    elseif i == 4
+        ylim([34 40]);
+    end
+end
+
+subplot(2, 2, 1);
+legend('PCV Without CO2 Binding', 'VCV Without CO2 Binding', 'PCV modified', 'VCV modified');
+subplot(2, 2, 2);
+legend('PCV Without CO2 Binding', 'VCV Without CO2 Binding', 'PCV modified', 'VCV modified');
+subplot(2, 2, 3);
+legend('PCV original', 'VCV original', 'PCV modified', 'VCV modified');
+subplot(2, 2, 4);
+legend('PCV original', 'VCV original', 'PCV modified', 'VCV modified');
